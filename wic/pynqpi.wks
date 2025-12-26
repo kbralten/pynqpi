@@ -1,0 +1,5 @@
+# Boot Partition (256MB, FAT32)
+part /boot --source bootimg-partition --ondisk mmcblk0 --fstype=vfat --label boot --active --align 4 --fixed-size 256M
+
+# Root Partition (1GB, EXT4)
+part / --source rootfs --ondisk mmcblk0 --fstype=ext4 --label root --align 4 --fixed-size 1024M

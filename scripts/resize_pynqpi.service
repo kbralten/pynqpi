@@ -1,0 +1,10 @@
+[Unit]
+Description=Resize RootFS
+Before=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/resize_pynqpi.sh
+
+[Install]
+WantedBy=multi-user.target
