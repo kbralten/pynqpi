@@ -38,11 +38,7 @@ module axis_to_video #(
     output reg [VIDEO_DATA_WIDTH-1:0] vid_data,
     output reg vid_hsync,
     output reg vid_vsync,
-    output reg vid_active_video,
-    
-    //status
-    output wire [1:0] state_debug,
-    output wire frame_pending_debug
+    output reg vid_active_video
 );
 
     // State machine
@@ -52,9 +48,6 @@ module axis_to_video #(
     
     reg [1:0] state;
     reg frame_pending;
-    
-    assign state_debug = state;
-    assign frame_pending_debug = frame_pending;
     
     // Pipeline registers for timing signals - ALL signals need same delay for alignment
     reg vtc_fsync_d1, vtc_fsync_d2;
