@@ -1,0 +1,185 @@
+/include/ "system-conf.dtsi"
+
+/ {
+    /* Boot Arguments: Enable debugging and prevent clock shutdown */
+    chosen {
+        bootargs = "console=ttyPS0,115200 root=/dev/mmcblk0p2 rw rootwait";
+    };
+
+    /* 1. Define Reserved Memory for Video Buffers (CMA) */
+    reserved-memory {
+        #address-cells = <1>;
+        #size-cells = <1>;
+        ranges;
+
+        video_mem: video_mem {
+            compatible = "shared-dma-pool";
+            reusable;
+            size = <0x01000000>; /* 16MB - enough for triple-buffered 720p */
+            alignment = <0x100000>; /* 1MB alignment */
+            linux,cma-default;
+        };
+    };
+
+    /* 2. Dummy Regulator (if needed by encoder) */
+    reg_3v3: regulator-3v3 {
+        compatible = "regulator-fixed";
+        regulator-name = "3v3-supply";
+        regulator-min-microvolt = <3300000>;
+        regulator-max-microvolt = <3300000>;
+        regulator-always-on;
+    };
+
+    /* 3. Dummy Connector Node */
+    hdmi_out: hdmi-output {
+        compatible = "xlnx,dummy-connector";
+        status = "okay";
+        
+        port {
+            dummy_in: endpoint {
+                remote-endpoint = <&pl_disp_out>;
+            };
+        };
+    };
+
+    /* 4. Xilinx PL Display Driver */
+    drm_pl_disp: drm-pl-disp-drv {
+        compatible = "xlnx,pl-disp";
+        status = "okay";
+        
+        /* DMA channel for video data */
+        dmas = <&axi_vdma_0 0>;
+        dma-names = "dma0";
+        
+        /* Video format: XR24 = XRGB8888 (32-bit) */
+        xlnx,vformat = "XR24";
+        
+        /* VTC bridge for timing */
+        xlnx,bridge = <&v_tc_0>;
+        
+        /* Use reserved CMA memory */
+        memory-region = <&video_mem>;
+        
+        /* Output port to dummy connector */
+        ports {
+            #address-cells = <1>;
+            #size-cells = <0>;
+            
+            port@0 {
+                reg = <0>;
+                pl_disp_out: endpoint {
+                    remote-endpoint = <&dummy_in>;
+                };
+            };
+        };
+    };
+};
+
+/* MODIFY EXISTING NODES (auto-generated from .xsa) */
+
+/* 5. Configure VDMA for DRM usage */
+&axi_vdma_0 {
+    status = "okay";
+    #dma-cells = <1>;
+    dma-ranges = <0x00000000 0x00000000 0x40000000>;
+    xlnx,addrwidth = <32>;
+    xlnx,num-fstores = <3>;
+    
+    /* Force VDMA MM2S stream clock to match VTC clock (74.25MHz) */
+    clocks = <&clkc 15>, <&clkc 15>, <&misc_clk_0>, <&clkc 15>, <&clkc 15>;
+    clock-names = "s_axi_lite_aclk", "m_axi_mm2s_aclk", "m_axis_mm2s_aclk", 
+                  "m_axi_s2mm_aclk", "s_axis_s2mm_aclk";
+    
+    /* MM2S channel data width for 32-bit XRGB8888 */
+    dma-channel@43000000 {
+        xlnx,datawidth = <0x20>;  /* 32 bits */
+    };
+};
+
+/* 6. Configure VTC with proper compatible strings and clocks */
+&v_tc_0 {
+    compatible = "xlnx,v-tc-6.2", "xlnx,v-tc-6.1", "xlnx,bridge-v-tc-6.1", "xlnx,bridge-vtc";
+    status = "okay";
+    
+    /* VTC needs both pixel clock AND AXI clock */
+    clock-names = "clk", "s_axi_aclk";
+    clocks = <&misc_clk_0>, <&clkc 15>;
+    
+    /* Pixels per clock */
+    xlnx,pixels-per-clock = <1>;
+};
+
+/* 7. Define pixel clock (74.25 MHz) */
+/ {
+    misc_clk_0: misc_clk_0 {
+        compatible = "fixed-clock";
+        #clock-cells = <0>;
+        clock-frequency = <74250000>;   /* 74.25 MHz pixel clock */
+    };
+};
+
+/* 8. Add USB PHY with TUSB1210 reset GPIO on MIO 46 */
+/ {
+    usb_phy0: phy0 {
+        compatible = "ulpi-phy";
+        #phy-cells = <0>;
+        reg = <0xe0002000 0x1000>;
+        view-port = <0x170>;
+        reset-gpios = <&gpio0 46 1>;
+        drv-vbus;
+    };
+};
+
+/* 9. Configure USB0 */
+&usb0 {
+    status = "okay";
+    dr_mode = "host";
+    usb-phy = <&usb_phy0>;
+};
+
+/* 10. Configure SPI0 for userspace access */
+&spi0 {
+    status = "okay";
+    is-decoded-cs = <0>;
+    num-cs = <1>;
+    
+    spidev@0 {
+        compatible = "rohm,dh2228fv";  /* Generic spidev compatible string */
+        reg = <0>;  /* Chip select 0 */
+        spi-max-frequency = <50000000>;  /* 50 MHz max */
+    };
+};
+
+/* 11. Configure I2C0 for userspace access */
+&i2c0 {
+    status = "okay";
+    clock-frequency = <100000>;  /* 100 kHz standard mode */
+    
+    /* I2C devices can be added here when connected */
+    /* Example:
+    eeprom@50 {
+        compatible = "atmel,24c02";
+        reg = <0x50>;
+    };
+    */
+};
+
+/* Optimized Ethernet Configuration */
+&gem0 {
+    status = "okay";
+    phy-mode = "rgmii-id";
+    phy-handle = <&ethernet_phy>;
+
+    /* Define the MDIO bus manually to prevent scanning */
+    mdio {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        ethernet_phy: ethernet-phy@1 {
+            reg = <1>;  /* PHY Address 1 */
+            device_type = "ethernet-phy";
+            /* Optional: Compatible string if specific workaround needed */
+            /* compatible = "ethernet-phy-id001c.c816"; */ 
+        };
+    };
+};
