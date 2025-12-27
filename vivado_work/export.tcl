@@ -31,8 +31,15 @@ set out_bd_dir        "$base_out_dir/bd"
 set out_ip_dir        "$base_out_dir/ip"
 set out_scripts_dir   "$base_out_dir/scripts"
 
-# Create directories if missing
+# -----------------------------
+# Clean and Create Output Directories
+# -----------------------------
+puts "Cleaning output directories..."
 foreach d [list $out_src_rtl $out_src_sim $out_src_xdc $out_bd_dir $out_ip_dir $out_scripts_dir] {
+    if {[file exists $d]} {
+        puts "  Cleaning $d"
+        file delete -force $d
+    }
     file mkdir $d
 }
 
@@ -43,10 +50,24 @@ puts "Opening project..."
 open_project "$proj_dir/$proj_name.xpr"
 
 # -----------------------------
+# Reset Project (Clean Ephemeral Files)
+# -----------------------------
+puts "Resetting project to clean generated files..."
+reset_project
+
+# -----------------------------
 # Export Project Info (Part, Board)
 # -----------------------------
 set proj_part [get_property PART [current_project]]
 set proj_board [get_property BOARD_PART [current_project]]
+
+puts "DEBUG: Project Part: $proj_part"
+puts "DEBUG: Project Board: '$proj_board'"
+
+if {$proj_board == ""} {
+    puts "WARNING: Board part is empty! Check project settings."
+}
+
 set proj_info_script "$out_scripts_dir/project_info.tcl"
 
 puts "Exporting project info..."
@@ -149,6 +170,31 @@ foreach ip $ips {
 # -----------------------------
 # Copy HDL, XDC, and SIM files
 # -----------------------------
+# -----------------------------
+# Filter for User Files (Exclude Generated/BD files)
+# -----------------------------
+proc filter_user_files {file_list} {
+    set out_list {}
+    foreach f $file_list {
+        # Check if file belongs to a BD or IP (Composite File)
+        set parent [get_property -quiet PARENT_COMPOSITE_FILE $f]
+        if {$parent != ""} {
+            puts "Skipping generated component file: [file tail $f] (Parent: [file tail $parent])"
+            continue
+        }
+        
+        # Check if file is flagged as generated (e.g. IP output products not linked to composite)
+        set is_gen [get_property -quiet IS_GENERATED $f]
+        if {$is_gen == 1} {
+             puts "Skipping generated file: [file tail $f]"
+             continue
+        }
+        
+        lappend out_list $f
+    }
+    return $out_list
+}
+
 proc copy_files {files dest} {
     foreach f $files {
         if {[file exists $f]} {
@@ -179,7 +225,8 @@ foreach f $all_files {
 set hdl_files [get_files -filter {FILE_TYPE == "Verilog" || FILE_TYPE == "VHDL"}]
 if {[llength $hdl_files] > 0} {
     puts "Copying HDL files..."
-    copy_files $hdl_files $out_src_rtl
+    set clean_hdl [filter_user_files $hdl_files]
+    copy_files $clean_hdl $out_src_rtl
 } else {
     puts "No HDL files found."
 }
@@ -188,7 +235,8 @@ if {[llength $hdl_files] > 0} {
 set xdc_files [get_files -filter {FILE_TYPE == "XDC"}]
 if {[llength $xdc_files] > 0} {
     puts "Copying XDC files..."
-    copy_files $xdc_files $out_src_xdc
+    set clean_xdc [filter_user_files $xdc_files]
+    copy_files $clean_xdc $out_src_xdc
 } else {
     puts "No XDC files found."
 }
@@ -197,7 +245,8 @@ if {[llength $xdc_files] > 0} {
 set sim_files [get_files -filter {FILE_TYPE == "Simulation"}]
 if {[llength $sim_files] > 0} {
     puts "Copying simulation files..."
-    copy_files $sim_files $out_src_sim
+    set clean_sim [filter_user_files $sim_files]
+    copy_files $clean_sim $out_src_sim
 } else {
     puts "No simulation files found."
 }

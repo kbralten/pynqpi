@@ -49,6 +49,19 @@ set bd_dir             "$base_src_dir/bd"
 set ip_dir             "$base_src_dir/ip"
 
 # -----------------------------
+# Define Local Directories (Sandbox)
+# -----------------------------
+set local_src_dir      "$proj_dir/src"
+set local_rtl_dir      "$local_src_dir/rtl"
+set local_sim_dir      "$local_src_dir/sim"
+set local_xdc_dir      "$local_src_dir/constraints"
+
+# Create local directories
+foreach d [list $local_src_dir $local_rtl_dir $local_sim_dir $local_xdc_dir] {
+    file mkdir $d
+}
+
+# -----------------------------
 # Clean any previous project
 # -----------------------------
 if {[file exists "$proj_dir/$proj_name.xpr"]} {
@@ -84,8 +97,12 @@ set_property target_language Verilog [current_project]
 if {[file exists $src_rtl_dir]} {
     set rtl_list [glob -nocomplain "$src_rtl_dir/*"]
     if {[llength $rtl_list] > 0} {
-        puts "Importing RTL sources..."
-        add_files -norecurse $rtl_list
+        puts "Copying and importing RTL sources..."
+        foreach f $rtl_list {
+            file copy -force $f $local_rtl_dir
+        }
+        set local_rtl_list [glob -nocomplain "$local_rtl_dir/*"]
+        add_files -norecurse $local_rtl_list
     } else {
         puts "No RTL sources found."
     }
@@ -98,8 +115,12 @@ if {[file exists $src_rtl_dir]} {
 if {[file exists $src_sim_dir]} {
     set sim_list [glob -nocomplain "$src_sim_dir/*"]
     if {[llength $sim_list] > 0} {
-        puts "Importing simulation sources..."
-        add_files -fileset sim_1 -norecurse $sim_list
+        puts "Copying and importing simulation sources..."
+        foreach f $sim_list {
+            file copy -force $f $local_sim_dir
+        }
+        set local_sim_list [glob -nocomplain "$local_sim_dir/*"]
+        add_files -fileset sim_1 -norecurse $local_sim_list
     } else {
         puts "No simulation sources found."
     }
@@ -112,8 +133,12 @@ if {[file exists $src_sim_dir]} {
 if {[file exists $src_xdc_dir]} {
     set xdc_list [glob -nocomplain "$src_xdc_dir/*"]
     if {[llength $xdc_list] > 0} {
-        puts "Importing XDC constraints..."
-        add_files -fileset constrs_1 -norecurse $xdc_list
+        puts "Copying and importing XDC constraints..."
+        foreach f $xdc_list {
+            file copy -force $f $local_xdc_dir
+        }
+        set local_xdc_list [glob -nocomplain "$local_xdc_dir/*"]
+        add_files -fileset constrs_1 -norecurse $local_xdc_list
     } else {
         puts "No XDC constraints found."
     }
