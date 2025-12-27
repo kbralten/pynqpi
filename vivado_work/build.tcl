@@ -27,6 +27,7 @@ set xsa_out "../vivado/pynqpi.xsa"
 # -----------------------------
 puts "Opening project..."
 open_project "$proj_dir/$proj_name.xpr"
+reset_project
 
 # -----------------------------
 # Run Synthesis
