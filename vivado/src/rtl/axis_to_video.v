@@ -25,7 +25,7 @@ module axis_to_video #(
     (* X_INTERFACE_INFO = "xilinx.com:interface:axis:1.0 s_axis TUSER" *)
     input wire s_axis_tuser,        // Start of frame
     (* X_INTERFACE_INFO = "xilinx.com:interface:axis:1.0 s_axis TLAST" *)
-    (* X_INTERFACE_PARAMETER = "TDATA_NUM_BYTES 3, TUSER_WIDTH 1, HAS_TREADY 1, HAS_TKEEP 0, HAS_TLAST 1" *)
+    (* X_INTERFACE_PARAMETER = "TUSER_WIDTH 1, HAS_TREADY 1, HAS_TKEEP 0, HAS_TLAST 1" *)
     input wire s_axis_tlast,        // End of line
     
     // VTC timing inputs

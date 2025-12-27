@@ -907,15 +907,15 @@ proc create_root_design { parentCell } {
   connect_bd_net -net clk_wiz_0_pixel_clk  [get_bd_pins clk_wiz_0/pixel_clk] \
   [get_bd_pins v_tc_0/clk] \
   [get_bd_pins axi_vdma_0/m_axis_mm2s_aclk] \
-  [get_bd_pins axis_to_video_0/video_clk] \
   [get_bd_pins pixelclk_reset_0/slowest_sync_clk] \
-  [get_bd_pins rgb2dvi_0/PixelClk]
+  [get_bd_pins rgb2dvi_0/PixelClk] \
+  [get_bd_pins axis_to_video_0/video_clk]
   connect_bd_net -net clk_wiz_0_serial_clk  [get_bd_pins clk_wiz_0/serial_clk] \
   [get_bd_pins rgb2dvi_0/SerialClk]
   connect_bd_net -net pixelclk_reset_0_peripheral_aresetn  [get_bd_pins pixelclk_reset_0/peripheral_aresetn] \
   [get_bd_pins v_tc_0/resetn] \
-  [get_bd_pins axis_to_video_0/resetn] \
-  [get_bd_pins rgb2dvi_0/aRst_n]
+  [get_bd_pins rgb2dvi_0/aRst_n] \
+  [get_bd_pins axis_to_video_0/resetn]
   connect_bd_net -net processing_system7_0_FCLK_CLK0  [get_bd_pins processing_system7_0/FCLK_CLK0] \
   [get_bd_pins axi_vdma_0/s_axi_lite_aclk] \
   [get_bd_pins axi_vdma_0/m_axi_mm2s_aclk] \
