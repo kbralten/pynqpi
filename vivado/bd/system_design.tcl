@@ -57,6 +57,7 @@ if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
 set list_projs [get_projects -quiet]
 if { $list_projs eq "" } {
    create_project project_1 myproj -part xc7z020clg400-1
+   set_property BOARD_PART tul.com.tw:pynq-z2:part0:1.0 [current_project]
 }
 
 
@@ -140,10 +141,10 @@ xilinx.com:ip:processing_system7:5.5\
 xilinx.com:ip:axi_vdma:6.3\
 xilinx.com:ip:v_tc:6.2\
 digilentinc.com:ip:rgb2dvi:1.4\
-xilinx.com:ip:axi_gpio:2.0\
 xilinx.com:ip:smartconnect:1.0\
 xilinx.com:ip:proc_sys_reset:5.0\
 xilinx.com:ip:clk_wiz:6.0\
+xilinx.com:ip:axi_gpio:2.0\
 "
 
    set list_ips_missing ""
@@ -238,7 +239,7 @@ proc create_root_design { parentCell } {
 
   set leds_4bits [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:gpio_rtl:1.0 leds_4bits ]
 
-  set hdmi_tx [ create_bd_intf_port -mode Master -vlnv digilentinc.com:interface:tmds_rtl:1.0 hdmi_tx ]
+  set hdmi_out [ create_bd_intf_port -mode Master -vlnv digilentinc.com:interface:tmds_rtl:1.0 hdmi_out ]
 
 
   # Create ports
@@ -278,7 +279,9 @@ proc create_root_design { parentCell } {
     CONFIG.PCW_APU_CLK_RATIO_ENABLE {6:2:1} \
     CONFIG.PCW_APU_PERIPHERAL_FREQMHZ {650} \
     CONFIG.PCW_CAN0_PERIPHERAL_CLKSRC {External} \
+    CONFIG.PCW_CAN0_PERIPHERAL_ENABLE {0} \
     CONFIG.PCW_CAN1_PERIPHERAL_CLKSRC {External} \
+    CONFIG.PCW_CAN1_PERIPHERAL_ENABLE {0} \
     CONFIG.PCW_CAN_PERIPHERAL_CLKSRC {IO PLL} \
     CONFIG.PCW_CAN_PERIPHERAL_VALID {0} \
     CONFIG.PCW_CLK0_FREQ {100000000} \
@@ -392,11 +395,14 @@ proc create_root_design { parentCell } {
     CONFIG.PCW_GPIO_MIO_GPIO_ENABLE {1} \
     CONFIG.PCW_GPIO_MIO_GPIO_IO {MIO} \
     CONFIG.PCW_GPIO_PERIPHERAL_ENABLE {0} \
+    CONFIG.PCW_I2C0_PERIPHERAL_ENABLE {0} \
+    CONFIG.PCW_I2C1_PERIPHERAL_ENABLE {0} \
     CONFIG.PCW_I2C_RESET_ENABLE {0} \
     CONFIG.PCW_I2C_RESET_POLARITY {Active Low} \
     CONFIG.PCW_IMPORT_BOARD_PRESET {None} \
     CONFIG.PCW_INCLUDE_ACP_TRANS_CHECK {0} \
     CONFIG.PCW_IRQ_F2P_INTR {1} \
+    CONFIG.PCW_IRQ_F2P_MODE {DIRECT} \
     CONFIG.PCW_MIO_0_IOTYPE {LVCMOS 3.3V} \
     CONFIG.PCW_MIO_0_PULLUP {enabled} \
     CONFIG.PCW_MIO_0_SLEW {slow} \
@@ -610,6 +616,7 @@ proc create_root_design { parentCell } {
     CONFIG.PCW_PCAP_PERIPHERAL_CLKSRC {IO PLL} \
     CONFIG.PCW_PCAP_PERIPHERAL_FREQMHZ {200} \
     CONFIG.PCW_PERIPHERAL_BOARD_PRESET {part0} \
+    CONFIG.PCW_PJTAG_PERIPHERAL_ENABLE {0} \
     CONFIG.PCW_PLL_BYPASSMODE_ENABLE {0} \
     CONFIG.PCW_PRESET_BANK0_VOLTAGE {LVCMOS 3.3V} \
     CONFIG.PCW_PRESET_BANK1_VOLTAGE {LVCMOS 1.8V} \
@@ -651,19 +658,24 @@ proc create_root_design { parentCell } {
     CONFIG.PCW_SPI1_PERIPHERAL_ENABLE {0} \
     CONFIG.PCW_SPI_PERIPHERAL_CLKSRC {IO PLL} \
     CONFIG.PCW_SPI_PERIPHERAL_VALID {0} \
+    CONFIG.PCW_S_AXI_HP0_DATA_WIDTH {64} \
     CONFIG.PCW_TPIU_PERIPHERAL_CLKSRC {External} \
+    CONFIG.PCW_TRACE_INTERNAL_WIDTH {2} \
+    CONFIG.PCW_TRACE_PERIPHERAL_ENABLE {0} \
     CONFIG.PCW_TTC0_CLK0_PERIPHERAL_CLKSRC {CPU_1X} \
     CONFIG.PCW_TTC0_CLK0_PERIPHERAL_DIVISOR0 {1} \
     CONFIG.PCW_TTC0_CLK1_PERIPHERAL_CLKSRC {CPU_1X} \
     CONFIG.PCW_TTC0_CLK1_PERIPHERAL_DIVISOR0 {1} \
     CONFIG.PCW_TTC0_CLK2_PERIPHERAL_CLKSRC {CPU_1X} \
     CONFIG.PCW_TTC0_CLK2_PERIPHERAL_DIVISOR0 {1} \
+    CONFIG.PCW_TTC0_PERIPHERAL_ENABLE {0} \
     CONFIG.PCW_TTC1_CLK0_PERIPHERAL_CLKSRC {CPU_1X} \
     CONFIG.PCW_TTC1_CLK0_PERIPHERAL_DIVISOR0 {1} \
     CONFIG.PCW_TTC1_CLK1_PERIPHERAL_CLKSRC {CPU_1X} \
     CONFIG.PCW_TTC1_CLK1_PERIPHERAL_DIVISOR0 {1} \
     CONFIG.PCW_TTC1_CLK2_PERIPHERAL_CLKSRC {CPU_1X} \
     CONFIG.PCW_TTC1_CLK2_PERIPHERAL_DIVISOR0 {1} \
+    CONFIG.PCW_TTC1_PERIPHERAL_ENABLE {0} \
     CONFIG.PCW_UART0_BASEADDR {0xE0000000} \
     CONFIG.PCW_UART0_BAUD_RATE {115200} \
     CONFIG.PCW_UART0_GRP_FULL_ENABLE {0} \
@@ -774,6 +786,7 @@ proc create_root_design { parentCell } {
     CONFIG.PCW_VALUE_SILVERSION {3} \
     CONFIG.PCW_WDT_PERIPHERAL_CLKSRC {CPU_1X} \
     CONFIG.PCW_WDT_PERIPHERAL_DIVISOR0 {1} \
+    CONFIG.PCW_WDT_PERIPHERAL_ENABLE {0} \
   ] $processing_system7_0
 
 
@@ -801,15 +814,6 @@ proc create_root_design { parentCell } {
     CONFIG.kGenerateSerialClk {false} \
     CONFIG.kRstActiveHigh {false} \
   ] $rgb2dvi_0
-
-
-  # Create instance: axi_gpio_0, and set properties
-  set axi_gpio_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 axi_gpio_0 ]
-  set_property -dict [list \
-    CONFIG.C_TRI_DEFAULT {0x00000000} \
-     \
-    CONFIG.USE_BOARD_FLOW {false} \
-  ] $axi_gpio_0
 
 
   # Create instance: axi_smc, and set properties
@@ -869,6 +873,11 @@ proc create_root_design { parentCell } {
   ] $clk_wiz_0
 
 
+  # Create instance: axi_gpio_0, and set properties
+  set axi_gpio_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 axi_gpio_0 ]
+  set_property CONFIG.GPIO_BOARD_INTERFACE {leds_4bits} $axi_gpio_0
+
+
   # Create interface connections
   connect_bd_intf_net -intf_net axi_gpio_0_GPIO [get_bd_intf_ports leds_4bits] [get_bd_intf_pins axi_gpio_0/GPIO]
   connect_bd_intf_net -intf_net axi_mem_intercon_M00_AXI [get_bd_intf_pins axi_mem_intercon/M00_AXI] [get_bd_intf_pins processing_system7_0/S_AXI_HP0]
@@ -880,7 +889,7 @@ proc create_root_design { parentCell } {
   connect_bd_intf_net -intf_net processing_system7_0_DDR [get_bd_intf_ports DDR] [get_bd_intf_pins processing_system7_0/DDR]
   connect_bd_intf_net -intf_net processing_system7_0_FIXED_IO [get_bd_intf_ports FIXED_IO] [get_bd_intf_pins processing_system7_0/FIXED_IO]
   connect_bd_intf_net -intf_net processing_system7_0_M_AXI_GP0 [get_bd_intf_pins processing_system7_0/M_AXI_GP0] [get_bd_intf_pins axi_smc/S00_AXI]
-  connect_bd_intf_net -intf_net rgb2dvi_0_TMDS [get_bd_intf_ports hdmi_tx] [get_bd_intf_pins rgb2dvi_0/TMDS]
+  connect_bd_intf_net -intf_net rgb2dvi_0_TMDS [get_bd_intf_ports hdmi_out] [get_bd_intf_pins rgb2dvi_0/TMDS]
 
   # Create port connections
   connect_bd_net -net axi_vdma_0_mm2s_introut  [get_bd_pins axi_vdma_0/mm2s_introut] \
@@ -896,41 +905,41 @@ proc create_root_design { parentCell } {
   connect_bd_net -net clk_wiz_0_locked  [get_bd_pins clk_wiz_0/locked] \
   [get_bd_pins pixelclk_reset_0/dcm_locked]
   connect_bd_net -net clk_wiz_0_pixel_clk  [get_bd_pins clk_wiz_0/pixel_clk] \
-  [get_bd_pins pixelclk_reset_0/slowest_sync_clk] \
   [get_bd_pins v_tc_0/clk] \
   [get_bd_pins axi_vdma_0/m_axis_mm2s_aclk] \
-  [get_bd_pins rgb2dvi_0/PixelClk] \
-  [get_bd_pins axis_to_video_0/video_clk]
+  [get_bd_pins axis_to_video_0/video_clk] \
+  [get_bd_pins pixelclk_reset_0/slowest_sync_clk] \
+  [get_bd_pins rgb2dvi_0/PixelClk]
   connect_bd_net -net clk_wiz_0_serial_clk  [get_bd_pins clk_wiz_0/serial_clk] \
   [get_bd_pins rgb2dvi_0/SerialClk]
   connect_bd_net -net pixelclk_reset_0_peripheral_aresetn  [get_bd_pins pixelclk_reset_0/peripheral_aresetn] \
   [get_bd_pins v_tc_0/resetn] \
-  [get_bd_pins rgb2dvi_0/aRst_n] \
-  [get_bd_pins axis_to_video_0/resetn]
+  [get_bd_pins axis_to_video_0/resetn] \
+  [get_bd_pins rgb2dvi_0/aRst_n]
   connect_bd_net -net processing_system7_0_FCLK_CLK0  [get_bd_pins processing_system7_0/FCLK_CLK0] \
-  [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK] \
-  [get_bd_pins axi_smc/aclk] \
-  [get_bd_pins axi_gpio_0/s_axi_aclk] \
-  [get_bd_pins rst_ps7_0_100M/slowest_sync_clk] \
   [get_bd_pins axi_vdma_0/s_axi_lite_aclk] \
   [get_bd_pins axi_vdma_0/m_axi_mm2s_aclk] \
   [get_bd_pins axi_mem_intercon/S00_ACLK] \
-  [get_bd_pins processing_system7_0/S_AXI_HP0_ACLK] \
   [get_bd_pins axi_mem_intercon/M00_ACLK] \
   [get_bd_pins axi_mem_intercon/ACLK] \
   [get_bd_pins v_tc_0/s_axi_aclk] \
-  [get_bd_pins clk_wiz_0/clk_in1]
+  [get_bd_pins axi_gpio_0/s_axi_aclk] \
+  [get_bd_pins axi_smc/aclk] \
+  [get_bd_pins clk_wiz_0/clk_in1] \
+  [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK] \
+  [get_bd_pins processing_system7_0/S_AXI_HP0_ACLK] \
+  [get_bd_pins rst_ps7_0_100M/slowest_sync_clk]
   connect_bd_net -net processing_system7_0_FCLK_RESET0_N  [get_bd_pins processing_system7_0/FCLK_RESET0_N] \
-  [get_bd_pins rst_ps7_0_100M/ext_reset_in] \
-  [get_bd_pins pixelclk_reset_0/ext_reset_in]
+  [get_bd_pins pixelclk_reset_0/ext_reset_in] \
+  [get_bd_pins rst_ps7_0_100M/ext_reset_in]
   connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn  [get_bd_pins rst_ps7_0_100M/peripheral_aresetn] \
-  [get_bd_pins axi_gpio_0/s_axi_aresetn] \
-  [get_bd_pins axi_smc/aresetn] \
   [get_bd_pins axi_vdma_0/axi_resetn] \
   [get_bd_pins axi_mem_intercon/S00_ARESETN] \
   [get_bd_pins axi_mem_intercon/M00_ARESETN] \
   [get_bd_pins axi_mem_intercon/ARESETN] \
-  [get_bd_pins v_tc_0/s_axi_aresetn]
+  [get_bd_pins v_tc_0/s_axi_aresetn] \
+  [get_bd_pins axi_gpio_0/s_axi_aresetn] \
+  [get_bd_pins axi_smc/aresetn]
   connect_bd_net -net v_tc_0_active_video_out  [get_bd_pins v_tc_0/active_video_out] \
   [get_bd_pins axis_to_video_0/vtc_active_video]
   connect_bd_net -net v_tc_0_fsync_out  [get_bd_pins v_tc_0/fsync_out] \
@@ -960,11 +969,6 @@ proc create_root_design { parentCell } {
 # MAIN FLOW
 ##################################################################
 
-
-common::send_gid_msg -ssname BD::TCL -id 2052 -severity "CRITICAL WARNING" "This Tcl script was generated from a block design that is out-of-date/locked. It is possible that design <$design_name> may result in errors during construction."
-
 create_root_design ""
-
-
 
 

@@ -2,7 +2,7 @@
 //Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
 //--------------------------------------------------------------------------------
 //Tool Version: Vivado v.2025.1 (win64) Build 6140274 Thu May 22 00:12:29 MDT 2025
-//Date        : Fri Dec 26 15:54:03 2025
+//Date        : Fri Dec 26 19:50:31 2025
 //Host        : Desktop-KB running 64-bit major release  (build 9200)
 //Command     : generate_target system_design_wrapper.bd
 //Design      : system_design_wrapper
@@ -32,10 +32,10 @@ module system_design_wrapper
     FIXED_IO_ps_clk,
     FIXED_IO_ps_porb,
     FIXED_IO_ps_srstb,
-    hdmi_tx_clk_n,
-    hdmi_tx_clk_p,
-    hdmi_tx_data_n,
-    hdmi_tx_data_p,
+    hdmi_out_clk_n,
+    hdmi_out_clk_p,
+    hdmi_out_data_n,
+    hdmi_out_data_p,
     leds_4bits_tri_io);
   inout [14:0]DDR_addr;
   inout [2:0]DDR_ba;
@@ -58,10 +58,10 @@ module system_design_wrapper
   inout FIXED_IO_ps_clk;
   inout FIXED_IO_ps_porb;
   inout FIXED_IO_ps_srstb;
-  output hdmi_tx_clk_n;
-  output hdmi_tx_clk_p;
-  output [2:0]hdmi_tx_data_n;
-  output [2:0]hdmi_tx_data_p;
+  output hdmi_out_clk_n;
+  output hdmi_out_clk_p;
+  output [2:0]hdmi_out_data_n;
+  output [2:0]hdmi_out_data_p;
   inout [3:0]leds_4bits_tri_io;
 
   wire [14:0]DDR_addr;
@@ -85,10 +85,10 @@ module system_design_wrapper
   wire FIXED_IO_ps_clk;
   wire FIXED_IO_ps_porb;
   wire FIXED_IO_ps_srstb;
-  wire hdmi_tx_clk_n;
-  wire hdmi_tx_clk_p;
-  wire [2:0]hdmi_tx_data_n;
-  wire [2:0]hdmi_tx_data_p;
+  wire hdmi_out_clk_n;
+  wire hdmi_out_clk_p;
+  wire [2:0]hdmi_out_data_n;
+  wire [2:0]hdmi_out_data_p;
   wire [0:0]leds_4bits_tri_i_0;
   wire [1:1]leds_4bits_tri_i_1;
   wire [2:2]leds_4bits_tri_i_2;
@@ -148,10 +148,10 @@ module system_design_wrapper
         .FIXED_IO_ps_clk(FIXED_IO_ps_clk),
         .FIXED_IO_ps_porb(FIXED_IO_ps_porb),
         .FIXED_IO_ps_srstb(FIXED_IO_ps_srstb),
-        .hdmi_tx_clk_n(hdmi_tx_clk_n),
-        .hdmi_tx_clk_p(hdmi_tx_clk_p),
-        .hdmi_tx_data_n(hdmi_tx_data_n),
-        .hdmi_tx_data_p(hdmi_tx_data_p),
+        .hdmi_out_clk_n(hdmi_out_clk_n),
+        .hdmi_out_clk_p(hdmi_out_clk_p),
+        .hdmi_out_data_n(hdmi_out_data_n),
+        .hdmi_out_data_p(hdmi_out_data_p),
         .leds_4bits_tri_i({leds_4bits_tri_i_3,leds_4bits_tri_i_2,leds_4bits_tri_i_1,leds_4bits_tri_i_0}),
         .leds_4bits_tri_o({leds_4bits_tri_o_3,leds_4bits_tri_o_2,leds_4bits_tri_o_1,leds_4bits_tri_o_0}),
         .leds_4bits_tri_t({leds_4bits_tri_t_3,leds_4bits_tri_t_2,leds_4bits_tri_t_1,leds_4bits_tri_t_0}));
