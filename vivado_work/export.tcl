@@ -92,11 +92,18 @@ if {[llength $ip_repos] > 0} {
     set fp [open $ip_repo_script w]
     puts $fp "set_property ip_repo_paths \[list \\"
     foreach repo $ip_repos {
-        # Normalize path to ensure it works across platforms/PWD changes
-        # Assuming repo paths are relative to something or absolute. 
-        # Ideally, we keep them as they are or make them relative to the project.
-        # For now, let's keep them as is but formatted for Tcl list.
-        puts $fp "    \"$repo\" \\"
+        set repo_norm [file normalize $repo]
+        set cwd_norm [file normalize [pwd]]
+        
+        # Make path relative if it is under the project directory (vivado_work)
+        if {[string first $cwd_norm $repo_norm] == 0} {
+             # Extract relative part (add 1 for the separator)
+             set rel_path ".[string range $repo_norm [string length $cwd_norm] end]"
+             puts $fp "    \"$rel_path\" \\"
+        } else {
+             # Keep absolute if outside project
+             puts $fp "    \"$repo\" \\"
+        }
     }
     puts $fp "\] \[current_project\]"
     puts $fp "update_ip_catalog"

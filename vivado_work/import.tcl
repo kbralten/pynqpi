@@ -180,6 +180,15 @@ proc sanitize_bd_tcl {file_path} {
     # Remove GPIO_BOARD_INTERFACE and USE_BOARD_FLOW properties
     # This prevents errors if the board definition is missing
     set new_content $content
+    
+    # Remove standalone set_property commands for GPIO_BOARD_INTERFACE
+    # Matches: set_property CONFIG.GPIO_BOARD_INTERFACE <anything> <object>
+    # or set_property -dict [list CONFIG.GPIO_BOARD_INTERFACE <anything>] <object>
+    # This specifically targets the line format that caused issues previously
+    # Must run BEFORE the generic replacement below to avoid partial matches leaving broken commands
+    regsub -all {set_property\s+CONFIG\.GPIO_BOARD_INTERFACE\s+[^\n]+} $new_content "" new_content
+
+    # Remove from dicts/lists
     regsub -all {CONFIG\.GPIO_BOARD_INTERFACE\s+\{[^\}]+\}} $new_content "" new_content
     regsub -all {CONFIG\.USE_BOARD_FLOW\s+\{true\}} $new_content "CONFIG.USE_BOARD_FLOW {false}" new_content
 
@@ -188,11 +197,23 @@ proc sanitize_bd_tcl {file_path} {
     close $fp
 }
 
+# Create local bd directory
+set local_bd_dir "$proj_dir/bd"
+file mkdir $local_bd_dir
+
 set bd_scripts [glob -nocomplain "$bd_dir/*.tcl"]
 foreach bd_tcl $bd_scripts {
-    puts "Recreating Block Design from: $bd_tcl"
-    sanitize_bd_tcl $bd_tcl
-    source $bd_tcl
+    # Determine local path
+    set bd_filename [file tail $bd_tcl]
+    set local_bd_tcl "$local_bd_dir/$bd_filename"
+    
+    # Copy to sandbox
+    puts "Copying Block Design script to sandbox: $bd_tcl"
+    file copy -force $bd_tcl $local_bd_tcl
+
+    puts "Recreating Block Design from: $local_bd_tcl"
+    sanitize_bd_tcl $local_bd_tcl
+    source $local_bd_tcl
 }
 
 
