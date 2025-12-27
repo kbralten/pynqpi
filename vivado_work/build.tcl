@@ -48,10 +48,14 @@ wait_on_run impl_1
 # -----------------------------
 puts "Generating bitstream..."
 # (Bitstream is generated as part of impl_1 above)
-# But we explicitly ensure it exists:
-if {![file exists "$proj_dir/$proj_name.runs/impl_1/${proj_name}.bit"]} {
+
+# Find the bitstream (it takes the name of the top module, not necessarily proj_name)
+set bit_files [glob -nocomplain "$proj_dir/$proj_name.runs/impl_1/*.bit"]
+if {[llength $bit_files] == 0} {
     error "Bitstream not found — implementation may have failed."
 }
+set bit_file [lindex $bit_files 0]
+puts "Found bitstream: $bit_file"
 
 # -----------------------------
 # Export XSA (with bitstream)
@@ -68,9 +72,6 @@ write_hw_platform \
 # -----------------------------
 # Save and close
 # -----------------------------
-puts "Saving project..."
-save_project_as $proj_name $proj_dir
-
 puts "Closing project..."
 close_project
 
