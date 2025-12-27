@@ -172,29 +172,12 @@ foreach ip_tcl $ip_scripts {
 # Sanitize BD Tcl files (remove board dependencies if board missing)
 # -----------------------------
 proc sanitize_bd_tcl {file_path} {
-    puts "Sanitizing BD script: $file_path"
-    set fp [open $file_path r]
-    set content [read $fp]
-    close $fp
-
-    # Remove GPIO_BOARD_INTERFACE and USE_BOARD_FLOW properties
-    # This prevents errors if the board definition is missing
-    set new_content $content
+    puts "Sanitizing BD script: $file_path (SKIPPED - Board Interface preservation enabled)"
+    # Previously, this function stripped GPIO_BOARD_INTERFACE to prevent errors
+    # if the board definition was missing. We now keep it to support board automation/presets.
     
-    # Remove standalone set_property commands for GPIO_BOARD_INTERFACE
-    # Matches: set_property CONFIG.GPIO_BOARD_INTERFACE <anything> <object>
-    # or set_property -dict [list CONFIG.GPIO_BOARD_INTERFACE <anything>] <object>
-    # This specifically targets the line format that caused issues previously
-    # Must run BEFORE the generic replacement below to avoid partial matches leaving broken commands
-    regsub -all {set_property\s+CONFIG\.GPIO_BOARD_INTERFACE\s+[^\n]+} $new_content "" new_content
-
-    # Remove from dicts/lists
-    regsub -all {CONFIG\.GPIO_BOARD_INTERFACE\s+\{[^\}]+\}} $new_content "" new_content
-    regsub -all {CONFIG\.USE_BOARD_FLOW\s+\{true\}} $new_content "CONFIG.USE_BOARD_FLOW {false}" new_content
-
-    set fp [open $file_path w]
-    puts $fp $new_content
-    close $fp
+    # No-op: Do not modify the file.
+    return
 }
 
 # Create local bd directory
